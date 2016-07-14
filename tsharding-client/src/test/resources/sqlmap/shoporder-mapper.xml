@@ -25,11 +25,9 @@
         SELECT
         <include refid="Base_Column_List"/>
         FROM
-        XDOrder
+        TradeOrder
         WHERE
         orderId = #{orderId}
-        AND
-        level = 1
         limit 1
     </select>
 
@@ -37,25 +35,22 @@
         SELECT
         <include refid="Base_Column_List"/>
         FROM
-        XDOrder
+        TradeOrder
         WHERE orderId IN
         <foreach item="shopOrderId" index="index" collection="list" open="(" separator="," close=")">
             #{shopOrderId}
         </foreach>
-        AND
-        level = 1
         limit 500
     </select>
 
     <!-- 批量根据店铺级订单ID更新店铺级订单 -->
     <update id="batchUpdateShopOrderByShopOrderIds" useGeneratedKeys="true" keyProperty="orderId" >
-        UPDATE XDOrder
-        <include refid="Base_Update_Column_List_Param"/> ,updated = unix_timestamp(now())
+        UPDATE TradeOrder
+        <include refid="Base_Update_Column_List_Param"/>
         where orderId in
         <foreach item="shopOrderId" index="index" collection="shopOrderIds" open="(" separator="," close=")">
             #{shopOrderId}
         </foreach>
-        AND level = 1
         limit 500
     </update>
 
