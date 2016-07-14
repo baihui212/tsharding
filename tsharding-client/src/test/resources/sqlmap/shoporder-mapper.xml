@@ -2,3 +2,40 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mogujie.service.tsharding.mapper.ShopOrderMapper">
+
+
+    <sql id="Base_Column_List">
+        orderId,
+        buyerUserId,
+        sellerUserId
+    </sql>
+
+
+    <select id="getShopOrderByShopOrderId" resultType="com.mogujie.service.tsharding.bean.ShopOrder">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM
+        XDOrder
+        WHERE
+        orderId = #{orderId}
+        AND
+        level = 1
+        limit 1
+    </select>
+
+    <select id="getShopOrderByShopOrderIds" resultType="com.mogujie.service.tsharding.bean.ShopOrder">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM
+        XDOrder
+        WHERE orderId IN
+        <foreach item="shopOrderId" index="index" collection="list" open="(" separator="," close=")">
+            #{shopOrderId}
+        </foreach>
+        AND
+        level = 1
+        limit 500
+    </select>
+
+</mapper>

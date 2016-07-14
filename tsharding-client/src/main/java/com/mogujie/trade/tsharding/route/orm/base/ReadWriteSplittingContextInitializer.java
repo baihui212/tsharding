@@ -1,8 +1,8 @@
 package com.mogujie.trade.tsharding.route.orm.base;
 
-import com.mogujie.tesla.db.DataSourceType;
-import com.mogujie.tesla.db.ReadWriteSplitting;
-import com.mogujie.tesla.db.ReadWriteSplittingContext;
+import com.mogujie.trade.db.DataSourceType;
+import com.mogujie.trade.db.ReadWriteSplitting;
+import com.mogujie.trade.db.ReadWriteSplittingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

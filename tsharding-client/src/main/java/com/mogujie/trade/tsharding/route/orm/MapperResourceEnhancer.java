@@ -59,7 +59,7 @@ public class MapperResourceEnhancer extends MapperEnhancer{
                     if (node instanceof StaticTextSqlNode) {
                         StaticTextSqlNode textSqlNode = (StaticTextSqlNode) node;
                         String text = (String) textField.get(textSqlNode);
-                        if(!text.contains("TestTable") && !text.contains("TestTable1")){
+                        if(!text.contains("XDOrder")){
                             newSqlNodesList.add(node);
                         }else {
                             newSqlNodesList.add(new StaticTextSqlNode(replaceWithShardingTableName(text, tableName, shardingPara)));
@@ -88,7 +88,7 @@ public class MapperResourceEnhancer extends MapperEnhancer{
                 //sql处理
                 String sql = (String) sqlField.get(staticSqlSource);
 
-                if(!sql.contains("TestTable") && !sql.contains("TestTable1")){
+                if(!sql.contains("XDOrder")){
                     result = sqlSource;
                 }else {
                     sql = replaceWithShardingTableName(sql, tableName, shardingPara);
@@ -111,13 +111,9 @@ public class MapperResourceEnhancer extends MapperEnhancer{
 
 
     private String replaceWithShardingTableName(String text, String tableName, Long shardingPara){
-        if(text.contains(" TestTablePressureTest")){
-            return text.replace(" TestTablePressureTest", " TestTablePressureTest" + ShardingCaculator.getNumberWithZeroSuffix(shardingPara));
-        }else if(text.contains(" TestTable1PressureTest")){
-            return text.replace(" TestTable1PressureTest", " TestTable1PressureTest" + ShardingCaculator.getNumberWithZeroSuffix(shardingPara));
-        }else if(text.contains(" TestTable1")){
-            return text.replace(" TestTable1", " TestTable1" + ShardingCaculator.getNumberWithZeroSuffix(shardingPara));
+        if(text.contains(" XDOrderPressureTest")){
+            return text.replace(" XDOrderPressureTest", " XDOrderPressureTest" + ShardingCaculator.getNumberWithZeroSuffix(shardingPara));
         }
-        return text.replace(" TestTable", " " + tableName);
+        return text.replace(" XDOrder", " " + tableName);
     }
 }

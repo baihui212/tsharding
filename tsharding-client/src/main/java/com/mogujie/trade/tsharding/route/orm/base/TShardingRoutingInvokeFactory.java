@@ -1,18 +1,12 @@
 package com.mogujie.trade.tsharding.route.orm.base;
 
-import com.alibaba.druid.pool.DruidDataSource;
-import com.alibaba.fastjson.JSON;
-import com.mogujie.tesla.db.DataSourceLookup;
-import com.mogujie.tesla.db.DataSourceRouting;
-import com.mogujie.tesla.db.DataSourceRoutingException;
-import com.mogujie.tesla.db.ReadWriteSplittingDataSource;
-import com.mogujie.trade.moguswitch.util.MoguStableSwitch;
+import com.mogujie.trade.db.DataSourceRouting;
+import com.mogujie.trade.db.DataSourceRoutingException;
 import com.mogujie.trade.tsharding.annotation.parameter.ShardingBuyerPara;
 import com.mogujie.trade.tsharding.annotation.parameter.ShardingOrderPara;
 import com.mogujie.trade.tsharding.annotation.parameter.ShardingSellerPara;
 import com.mogujie.trade.tsharding.client.ShardingCaculator;
 import com.mogujie.trade.tsharding.route.TShardingRoutingHandler;
-import com.mogujie.trade.tsharding.route.orm.MapperScannerWithSharding;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.mapper.MapperFactoryBean;
 import org.slf4j.Logger;
@@ -22,7 +16,6 @@ import org.springframework.util.StringUtils;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.sql.SQLException;
 import java.util.List;
 
 public class TShardingRoutingInvokeFactory implements InvokerFactory<Class<?>> {
