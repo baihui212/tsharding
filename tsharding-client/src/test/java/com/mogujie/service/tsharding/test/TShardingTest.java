@@ -28,6 +28,14 @@ public class TShardingTest extends BaseTest {
 
 
     @Test
+    public void testGetShopOrderByShopOrderIdsDao() {
+        List<Long> orderIds = new ArrayList<>();
+        orderIds.add(50000280834672L);
+        List<ShopOrder> orders = shopOrderDao.getShopOrderByShopOrderIds(orderIds);
+        Assert.isTrue(orders.get(0).getOrderId().equals(50000280834672L));
+    }
+
+    @Test
     public void testGetShopOrderByShopOrderIds() {
         List<Long> orderIds = new ArrayList<>();
         orderIds.add(50000280834672L);
