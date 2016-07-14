@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,22 +26,23 @@ public class TShardingTest extends BaseTest {
     @Autowired
     private ShopOrderMapper shopOrderMapper;
 
-    @Test
-    public void testGetShopOrderByShopOrderIdsOfOneBuyer() {
-        List<Long> orderIds = new ArrayList<>();
-        orderIds.add(111L);
-        List<ShopOrder> orders = shopOrderDao.getShopOrderByShopOrderIdsOfOneBuyer(orderIds);
-        System.out.println();
-    }
-
 
     @Test
     public void testGetShopOrderByShopOrderIds() {
         List<Long> orderIds = new ArrayList<>();
         orderIds.add(50000280834672L);
-//        orderIds.add(70000204797232L);
         List<ShopOrder> orders = shopOrderMapper.getShopOrderByShopOrderIds(orderIds);
-        System.out.println();
+        Assert.isTrue(orders.get(0).getOrderId().equals(50000280834672L));
+    }
+
+    @Test
+    public void testUpdateShopOrder() {
+        List<Long> orderIds = new ArrayList<>();
+        orderIds.add(50000280834672L);
+        ShopOrder shopOrder = new ShopOrder();
+        shopOrder.setShipTime(12345678L);
+        int rows = shopOrderMapper.batchUpdateShopOrderByShopOrderIds(orderIds, shopOrder);
+        Assert.isTrue(rows == 1);
     }
 
 

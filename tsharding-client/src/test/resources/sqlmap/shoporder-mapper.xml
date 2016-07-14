@@ -5,6 +5,15 @@
 <mapper namespace="com.mogujie.service.tsharding.mapper.ShopOrderMapper">
 
 
+    <!-- 店铺级订单更新字段，显式指定参数名称 -->
+    <sql id="Base_Update_Column_List_Param">
+        <set>
+            <if test="shopOrder.shipTime!=null">
+                shipTime=#{shopOrder.shipTime},
+            </if>
+        </set>
+    </sql>
+
     <sql id="Base_Column_List">
         orderId,
         buyerUserId,
@@ -37,5 +46,17 @@
         level = 1
         limit 500
     </select>
+
+    <!-- 批量根据店铺级订单ID更新店铺级订单 -->
+    <update id="batchUpdateShopOrderByShopOrderIds" useGeneratedKeys="true" keyProperty="orderId" >
+        UPDATE XDOrder
+        <include refid="Base_Update_Column_List_Param"/> ,updated = unix_timestamp(now())
+        where orderId in
+        <foreach item="shopOrderId" index="index" collection="shopOrderIds" open="(" separator="," close=")">
+            #{shopOrderId}
+        </foreach>
+        AND level = 1
+        limit 500
+    </update>
 
 </mapper>

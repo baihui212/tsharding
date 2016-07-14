@@ -8,7 +8,7 @@
     http://www.springframework.org/schema/context/spring-context-4.0.xsd">
 
     <bean id="MapperScannerWithSharding" class="com.mogujie.trade.tsharding.route.orm.MapperScannerWithSharding">
-        <property name="packageName" value="${tesla.orm.mapperPacakge}"/>
+        <property name="packageName" value="${tsharding.orm.mapperPacakge}"/>
         <property name="mapperLocations" value="classpath*:sqlmap/*-mapper.xml"/>
     </bean>
 

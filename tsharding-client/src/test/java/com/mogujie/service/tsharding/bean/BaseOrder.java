@@ -9,6 +9,15 @@ public abstract class BaseOrder {
 
     private Long sellerUserId;
 
+    private Long shipTime;
+
+    public Long getShipTime() {
+        return shipTime;
+    }
+
+    public void setShipTime(Long shipTime) {
+        this.shipTime = shipTime;
+    }
 
     public Long getOrderId() {
         return orderId;
