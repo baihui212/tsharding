@@ -59,7 +59,7 @@ public class MapperResourceEnhancer extends MapperEnhancer{
                     if (node instanceof StaticTextSqlNode) {
                         StaticTextSqlNode textSqlNode = (StaticTextSqlNode) node;
                         String text = (String) textField.get(textSqlNode);
-                        if(!text.contains("XDOrder")){
+                        if(!text.contains("TradeOrder")){
                             newSqlNodesList.add(node);
                         }else {
                             newSqlNodesList.add(new StaticTextSqlNode(replaceWithShardingTableName(text, tableName, shardingPara)));
@@ -88,7 +88,7 @@ public class MapperResourceEnhancer extends MapperEnhancer{
                 //sql处理
                 String sql = (String) sqlField.get(staticSqlSource);
 
-                if(!sql.contains("XDOrder")){
+                if(!sql.contains("TradeOrder")){
                     result = sqlSource;
                 }else {
                     sql = replaceWithShardingTableName(sql, tableName, shardingPara);
@@ -111,9 +111,9 @@ public class MapperResourceEnhancer extends MapperEnhancer{
 
 
     private String replaceWithShardingTableName(String text, String tableName, Long shardingPara){
-        if(text.contains(" XDOrderPressureTest")){
-            return text.replace(" XDOrderPressureTest", " XDOrderPressureTest" + ShardingCaculator.getNumberWithZeroSuffix(shardingPara));
+        if(text.contains(" TradeOrderPressureTest")){
+            return text.replace(" TradeOrderPressureTest", " TradeOrderPressureTest" + ShardingCaculator.getNumberWithZeroSuffix(shardingPara));
         }
-        return text.replace(" XDOrder", " " + tableName);
+        return text.replace(" TradeOrder", " " + tableName);
     }
 }

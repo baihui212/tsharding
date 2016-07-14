@@ -20,7 +20,7 @@ public class ShardingCaculator {
      */
     public static String caculateTableName(Long shardingPara) {
         if (shardingPara >= 0) {
-            return "XDOrder" + getNumberWithZeroSuffix((shardingPara % 10000) % 512);
+            return "TradeOrder" + getNumberWithZeroSuffix((shardingPara % 10000) % 512);
         }
         return null;
     }
@@ -49,9 +49,9 @@ public class ShardingCaculator {
         if (shardingPara >= 0) {
 
             if ("sellerUserId".equals(fieldName)) {
-                return "sellerxdtrade" + getNumberWithZeroSuffix(((shardingPara % 10000) % 512) / 64);
+                return "sellertrade" + getNumberWithZeroSuffix(((shardingPara % 10000) % 512) / 64);
             } else {
-                return "xdtrade" + getNumberWithZeroSuffix(((shardingPara % 10000) % 512) / 64);
+                return "trade" + getNumberWithZeroSuffix(((shardingPara % 10000) % 512) / 64);
             }
         }
         return null;
