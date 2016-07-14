@@ -1,31 +1,25 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>com.mogujie.trade</groupId>
-        <artifactId>tsharding</artifactId>
-        <version>1.0.0</version>
-    </parent>
 
+    <groupId>com.mogujie.trade</groupId>
     <artifactId>tsharding-client</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.0</version>
     <name>tsharding client</name>
 
     <properties>
         <mybatis.version>3.2.8</mybatis.version>
         <mybatis-spring.version>1.2.2</mybatis-spring.version>
+        <spring.version>4.0.6.RELEASE</spring.version>
+        <junit.version>4.10</junit.version>
+        <javassist.version>3.19.0-GA</javassist.version>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>com.mogujie.trade</groupId>
-            <artifactId>trade.switch</artifactId>
-            <version>1.0.2.1111switch</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
+            <version>${spring.version}</version>
         </dependency>
 
         <dependency>
@@ -49,59 +43,32 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
+            <version>${spring.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
+            <version>${spring.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
+            <version>${spring.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
-            <version>3.19.0-GA</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.mogujie.tesla</groupId>
-            <artifactId>tesla-support</artifactId>
-            <version>${tesla.support.version}</version>
-            <type>pom</type>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.mogujie.tesla</groupId>
-                    <artifactId>tesla-dal-db-orm</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>com.mogujie.tesla</groupId>
-            <artifactId>tesla-dal-db</artifactId>
-            <version>1.0.11-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.mogujie.trade</groupId>
-            <artifactId>trade.switch</artifactId>
-            <version>1.0.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.mogujie.service</groupId>
-            <artifactId>trade.service.base</artifactId>
-            <version>1.0.6</version>
+            <version>${javassist.version}</version>
         </dependency>
 
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
         </dependency>
     </dependencies>
 </project>
