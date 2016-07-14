@@ -1,14 +1,10 @@
 package com.mogujie.trade.tsharding.route;
 
-import com.mogujie.tesla.db.DataSourceRoutingHandler;
-import com.mogujie.trade.tsharding.annotation.parameter.*;
-import com.mogujie.trade.tsharding.client.ShardingCaculator;
 
-import java.lang.annotation.Annotation;
+import com.mogujie.trade.db.DataSourceRoutingHandler;
+
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 
 /**

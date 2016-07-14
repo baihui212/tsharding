@@ -1,6 +1,5 @@
 package com.mogujie.trade.tsharding.route.orm;
 
-import com.mogujie.service.xiaodian.trade.base.utils.SentryUtil;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionTemplate;
@@ -29,10 +28,6 @@ public class MapperShardingInitializer implements ApplicationContextAware {
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-
-        //初始化jvm监控信息
-        SentryUtil.getTradeOrderInstance().openAutoCollector();
-
         Map<String, SqlSessionFactory> sqlSessionFactories = applicationContext.getBeansOfType(SqlSessionFactory.class);
         if (sqlSessionFactories.isEmpty()) {
             return;

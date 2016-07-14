@@ -1,4 +1,4 @@
-package com.mogujie.service.tsharding.client;
+package com.mogujie.service.tsharding.test.client;
 
 import com.mogujie.trade.tsharding.client.ShardingCaculator;
 import org.junit.Assert;

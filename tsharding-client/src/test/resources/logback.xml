@@ -1,8 +1,8 @@
 <configuration debug="false" scan="true" scanPeriod="30 seconds">
 
-	<logger name="druid.sql" level="WARN" />
+	<logger name="druid.sql" level="DEBUG" />
 
-	<logger name="com.alibaba.druid" level="WARN" />
+	<logger name="com.alibaba.druid" level="DEBUG" />
 
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>

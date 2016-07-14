@@ -1,7 +1,7 @@
 package com.mogujie.trade.tsharding.route.orm;
 
-import com.mogujie.tesla.db.DataSourceLookup;
-import com.mogujie.tesla.db.ReadWriteSplittingDataSource;
+import com.mogujie.trade.db.DataSourceLookup;
+import com.mogujie.trade.db.ReadWriteSplittingDataSource;
 import com.mogujie.trade.tsharding.route.orm.base.*;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.session.Configuration;
