@@ -32,29 +32,33 @@ public class MapperShardingInitializer implements ApplicationContextAware {
         if (sqlSessionFactories.isEmpty()) {
             return;
         }
-        MapperHelperForSharding mapperHelperForSharding = new MapperHelperForSharding();
+
         List<SqlSession> sqlSessions = new ArrayList<>(sqlSessionFactories.size());
         for (SqlSessionFactory sqlSessionFactory : sqlSessionFactories.values()) {
             SqlSession sqlSession = new SqlSessionTemplate(sqlSessionFactory);
             sqlSessions.add(sqlSession);
         }
+
         //Mapper代码增强 每个方法扩展出一个ShardingMapper类，增强为512个方法。
-        this.needEnhancedClassesArray = needEnhancedClasses.split(",");
-        this.enhanceMapperClass();
-        mapperHelperForSharding.setMappers(needEnhancedClassesArray);
+        //屏蔽,因为我们不能武断的认为需要增强512个,转到MapperHelperForSharding中处理
+//        this.needEnhancedClassesArray = needEnhancedClasses.split(",");
+//        this.enhanceMapperClass();
+
+        MapperHelperForSharding mapperHelperForSharding = new MapperHelperForSharding();
+        mapperHelperForSharding.setMappers(needEnhancedClasses.split(","));
         mapperHelperForSharding.setSqlSessions(sqlSessions.toArray(new SqlSession[0]));
         mapperHelperForSharding.initMapper();
     }
 
-    private void enhanceMapperClass() {
-        for (String mapperClass : needEnhancedClassesArray) {
-            try {
-                MapperEnhancer.enhanceMapperClass(mapperClass);
-            } catch (Exception e) {
-                logger.error("Enhance {} class error", mapperClass, e);
-            }
-        }
-    }
+//    private void enhanceMapperClass() {
+//        for (String mapperClass : needEnhancedClassesArray) {
+//            try {
+//                MapperEnhancer.enhanceMapperClass(mapperClass);
+//            } catch (Exception e) {
+//                logger.error("Enhance {} class error", mapperClass, e);
+//            }
+//        }
+//    }
 
     public void setNeedEnhancedClasses(String needEnhancedClasses) {
         this.needEnhancedClasses = needEnhancedClasses;

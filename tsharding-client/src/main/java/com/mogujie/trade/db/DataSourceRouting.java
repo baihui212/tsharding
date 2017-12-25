@@ -19,10 +19,9 @@ public @interface DataSourceRouting {
     String value() default "";
 
     /**
-     * 指定运行时路由处理的Handler，动态指定对应的数据源。<b>注意:此方式不能支持事务！</b>
+     * 指定运行时路由处理的Handler，动态指定对应的数据源和数据表。<b>注意:schema不同时，事务不保证能传递下去！</b>
      *
      * @return
      */
-    Class<? extends DataSourceRoutingHandler> handler() default EmptyDataSourceRoutingHandler.class;
-
+    Class<? extends MapperRoutingHandler> handler();
 }

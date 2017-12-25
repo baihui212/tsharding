@@ -2,11 +2,10 @@ package com.mogujie.trade.tsharding.route.orm.base;
 
 import com.mogujie.trade.db.DataSourceRouting;
 import com.mogujie.trade.db.DataSourceRoutingException;
+import com.mogujie.trade.db.MapperRoutingHandler;
 import com.mogujie.trade.tsharding.annotation.parameter.ShardingBuyerPara;
 import com.mogujie.trade.tsharding.annotation.parameter.ShardingOrderPara;
 import com.mogujie.trade.tsharding.annotation.parameter.ShardingSellerPara;
-import com.mogujie.trade.tsharding.client.ShardingCaculator;
-import com.mogujie.trade.tsharding.route.TShardingRoutingHandler;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.mapper.MapperFactoryBean;
 import org.slf4j.Logger;
@@ -50,14 +49,15 @@ public class TShardingRoutingInvokeFactory implements InvokerFactory<Class<?>> {
                     }
                 }
             };
-        } else if (dataSourceRouting != null && dataSourceRouting.handler() == TShardingRoutingHandler.class) { //使用Sharding数据源
+        } else if (dataSourceRouting != null && MapperRoutingHandler.class.isAssignableFrom(dataSourceRouting.handler())) { //使用Sharding数据源
+
             logger.debug("TShardingRoutingInvokeFactory routing: dynamic handler: " + dataSourceRouting.handler().getName());
             return new Invoker() {
                 @Override
                 public Object invoke(Invocation invocation) throws Throwable {
 
                     Method method = invocation.getMethod();
-                    ShardingMetadata shardingMetadata = getShardingKey(method, invocation.getArgs());
+                    ShardingMetadata shardingMetadata = getShardingKey(method, invocation.getArgs(), dataSourceRouting);
 
                     if (shardingMetadata == null) {
                         throw new DataSourceRoutingException("dataSourceRouting error! Method Name:" + method.getName() + " shardingMetadata is null!");
@@ -87,7 +87,16 @@ public class TShardingRoutingInvokeFactory implements InvokerFactory<Class<?>> {
     }
 
 
-    private ShardingMetadata getShardingKey(Method method, Object[] args) throws NoSuchFieldException, IllegalAccessException {
+    private ShardingMetadata getShardingKey(Method method, Object[] args, DataSourceRouting dataSourceRouting) throws NoSuchFieldException, IllegalAccessException {
+
+        MapperRoutingHandler mapperRoutingHandler;
+        try {
+            mapperRoutingHandler = dataSourceRouting.handler().newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
         Annotation[][] an = method.getParameterAnnotations();
         if (an.length > 0) {
             for (int i = 0; i < an.length; i++) {
@@ -117,18 +126,10 @@ public class TShardingRoutingInvokeFactory implements InvokerFactory<Class<?>> {
                             shardingKey = (Long) field.get(args[i]);
                         }
 
-                        String schemaName = null;
-                        if (an[i][j] instanceof ShardingOrderPara) {
-                            schemaName = ShardingCaculator.caculateSchemaName("orderId", shardingKey);
-                        } else if (an[i][j] instanceof ShardingBuyerPara) {
-                            schemaName = ShardingCaculator.caculateSchemaName("buyerUserId", shardingKey);
-                        } else if (an[i][j] instanceof ShardingSellerPara) {
-                            schemaName = ShardingCaculator.caculateSchemaName("sellerUserId", shardingKey);
-                        }
                         ShardingMetadata shardingMetadata = new ShardingMetadata();
                         shardingMetadata.setShardingKey(shardingKey);
-                        shardingMetadata.setTableSuffix(ShardingCaculator.getNumberWithZeroSuffix((shardingKey % 10000) % 512));
-                        shardingMetadata.setSchemaName(schemaName);
+                        shardingMetadata.setTableSuffix(mapperRoutingHandler.calculateTableIndex(shardingKey));
+                        shardingMetadata.setSchemaName(mapperRoutingHandler.calculateSchemaName(shardingKey));
                         return shardingMetadata;
                     }
                 }

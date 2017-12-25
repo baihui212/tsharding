@@ -1,12 +1,15 @@
 package com.mogujie.trade.tsharding.route.orm;
 
-import com.mogujie.trade.tsharding.client.ShardingCaculator;
+import com.mogujie.trade.db.MapperRoutingHandler;
 import org.apache.ibatis.builder.StaticSqlSource;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ParameterMapping;
 import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.scripting.defaults.RawSqlSource;
-import org.apache.ibatis.scripting.xmltags.*;
+import org.apache.ibatis.scripting.xmltags.DynamicSqlSource;
+import org.apache.ibatis.scripting.xmltags.MixedSqlNode;
+import org.apache.ibatis.scripting.xmltags.SqlNode;
+import org.apache.ibatis.scripting.xmltags.StaticTextSqlNode;
 import org.apache.ibatis.session.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +23,7 @@ import java.util.List;
  *
  * @author qigong on 5/1/15
  */
-public class MapperResourceEnhancer extends MapperEnhancer{
+public class MapperResourceEnhancer extends MapperEnhancer {
 
     Logger logger = LoggerFactory.getLogger(MapperResourceEnhancer.class);
 
@@ -28,29 +31,26 @@ public class MapperResourceEnhancer extends MapperEnhancer{
         super(mapperClass);
     }
 
-    public SqlSource enhancedShardingSQL(MappedStatement ms, Configuration configuration, Long shardingPara) {
+    public SqlSource enhancedShardingSQL(MappedStatement ms, Configuration configuration, MapperRoutingHandler mapperRoutingHandler, Long shardingPara) {
 
-        String tableName = ShardingCaculator.caculateTableName(shardingPara);
+        String tableName = mapperRoutingHandler.newTableName(shardingPara);
+        String baseTableName = mapperRoutingHandler.baseTableName();
         SqlSource result = null;
 
         try {
             if (ms.getSqlSource() instanceof DynamicSqlSource) {
 
                 DynamicSqlSource sqlSource = (DynamicSqlSource) ms.getSqlSource();
-
                 Class sqlSourceClass = sqlSource.getClass();
-
                 Field sqlNodeField = sqlSourceClass.getDeclaredField("rootSqlNode");
                 sqlNodeField.setAccessible(true);
-
                 MixedSqlNode rootSqlNode = (MixedSqlNode) sqlNodeField.get(sqlSource);
-
                 Class mixedSqlNodeClass = rootSqlNode.getClass();
                 Field contentsField = mixedSqlNodeClass.getDeclaredField("contents");
                 contentsField.setAccessible(true);
                 List<SqlNode> textSqlNodes = (List<SqlNode>) contentsField.get(rootSqlNode);
-                List<SqlNode> newSqlNodesList = new ArrayList();
 
+                List<SqlNode> newSqlNodesList = new ArrayList();
                 //StaticTextSqlNode
                 Class textSqlNodeClass = textSqlNodes.get(0).getClass();
                 Field textField = textSqlNodeClass.getDeclaredField("text");
@@ -59,12 +59,12 @@ public class MapperResourceEnhancer extends MapperEnhancer{
                     if (node instanceof StaticTextSqlNode) {
                         StaticTextSqlNode textSqlNode = (StaticTextSqlNode) node;
                         String text = (String) textField.get(textSqlNode);
-                        if(!text.contains("TradeOrder")){
+                        if (!text.contains(baseTableName)) {
                             newSqlNodesList.add(node);
-                        }else {
-                            newSqlNodesList.add(new StaticTextSqlNode(replaceWithShardingTableName(text, tableName, shardingPara)));
+                        } else {
+                            newSqlNodesList.add(new StaticTextSqlNode(replaceWithShardingTableName(text, baseTableName, tableName)));
                         }
-                    }else{
+                    } else {
                         newSqlNodesList.add(node);
                     }
                 }
@@ -88,14 +88,14 @@ public class MapperResourceEnhancer extends MapperEnhancer{
                 //sql处理
                 String sql = (String) sqlField.get(staticSqlSource);
 
-                if(!sql.contains("TradeOrder")){
+                if (!sql.contains(baseTableName)) {
                     result = sqlSource;
-                }else {
-                    sql = replaceWithShardingTableName(sql, tableName, shardingPara);
+                } else {
+                    sql = replaceWithShardingTableName(sql, baseTableName, tableName);
                     result = new RawSqlSource(configuration, sql, null);
                     //为sqlSource对象设置mappering参数
                     StaticSqlSource newStaticSqlSource = (StaticSqlSource) sqlSourceField.get(result);
-                    List<ParameterMapping> parameterMappings = (List<ParameterMapping>)parameterMappingsField.get(staticSqlSource);
+                    List<ParameterMapping> parameterMappings = (List<ParameterMapping>) parameterMappingsField.get(staticSqlSource);
                     parameterMappingsField.set(newStaticSqlSource, parameterMappings);
                 }
                 return result;
@@ -109,11 +109,15 @@ public class MapperResourceEnhancer extends MapperEnhancer{
         return result;
     }
 
-
-    private String replaceWithShardingTableName(String text, String tableName, Long shardingPara){
-        if(text.contains(" TradeOrderPressureTest")){
-            return text.replace(" TradeOrderPressureTest", " TradeOrderPressureTest" + ShardingCaculator.getNumberWithZeroSuffix(shardingPara));
-        }
-        return text.replace(" TradeOrder", " " + tableName);
+    /**
+     * 将sql中表名进行替换
+     *
+     * @param text
+     * @param baseTableName
+     * @param tableName
+     * @return
+     */
+    private String replaceWithShardingTableName(String text, String baseTableName, String tableName) {
+        return text.replace(baseTableName, tableName);
     }
 }

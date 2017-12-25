@@ -1,5 +1,6 @@
 package com.mogujie.trade.tsharding.route.orm;
 
+import com.mogujie.trade.db.MapperRoutingHandler;
 import com.mogujie.trade.tsharding.client.ShardingCaculator;
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -31,7 +32,8 @@ public abstract class MapperEnhancer {
 
     private static ClassPool pool = ClassPool.getDefault();
 
-    private Map<String, Method> methodMap = new HashMap<String, Method>();
+    private Map<String, Method> methodMap = new HashMap<>();
+    private Map<String, MapperRoutingHandler> mapperHandlerMap = new HashMap<>();
     private Class<?> mapperClass;
 
     public MapperEnhancer(Class<?> mapperClass) {
@@ -56,20 +58,20 @@ public abstract class MapperEnhancer {
      *
      * @param mapperClassName
      */
-    public static void enhanceMapperClass(String mapperClassName) throws Exception {
+    public static void enhanceMapperClass(String mapperClassName, MapperRoutingHandler mapperRoutingHandler) throws Exception {
 
         Class originClass = Class.forName(mapperClassName);
         Method[] originMethods = originClass.getDeclaredMethods();
 
         CtClass cc = pool.get(mapperClassName);
+        int tableSize = mapperRoutingHandler.tableSize();
 
         for (CtMethod ctMethod : cc.getDeclaredMethods()) {
             CtClass enhanceClass = pool.makeInterface(mapperClassName + "Sharding" + ctMethod.getName());
-            for (long i = 0L; i < 512; i++) {
-                CtMethod newMethod = new CtMethod(ctMethod.getReturnType(), ctMethod.getName() + ShardingCaculator.getNumberWithZeroSuffix(i), ctMethod.getParameterTypes(), enhanceClass);
-
-                Method method = getOriginMethod(newMethod, originMethods);
-                if(method.getParameterAnnotations()[0].length > 0) {
+            for (long i = 0L; i < tableSize; i++) {
+                CtMethod newMethod = new CtMethod(ctMethod.getReturnType(), ctMethod.getName() + mapperRoutingHandler.calculateTableIndex(i), ctMethod.getParameterTypes(), enhanceClass);
+                Method method = getOriginMethod(newMethod, originMethods, mapperRoutingHandler);
+                if (method.getParameterAnnotations()[0].length > 0) {
                     ClassFile ccFile = enhanceClass.getClassFile();
                     ConstPool constPool = ccFile.getConstPool();
 
@@ -85,10 +87,9 @@ public abstract class MapperEnhancer {
         }
     }
 
-    private static Method getOriginMethod(CtMethod ctMethod, Method[] originMethods) {
+    private static Method getOriginMethod(CtMethod ctMethod, Method[] originMethods, MapperRoutingHandler mapperRoutingHandler) {
         for (Method method : originMethods) {
-            int len = ctMethod.getName().length();
-            if (ctMethod.getName().substring(0, len-4).equals(method.getName())) {
+            if (mapperRoutingHandler.methodOriginName(ctMethod.getName()).equals(method.getName())) {
                 return method;
             }
         }
@@ -101,10 +102,10 @@ public abstract class MapperEnhancer {
      * @param methodName
      * @param method
      */
-    public void addMethodMap(String methodName, Method method) {
+    public void addMethodMap(String methodName, MapperRoutingHandler mapperRoutingHandler, Method method) {
         methodMap.put(methodName, method);
+        mapperHandlerMap.put(methodName, mapperRoutingHandler);
     }
-
 
     private static final ObjectFactory DEFAULT_OBJECT_FACTORY = new DefaultObjectFactory();
     private static final ObjectWrapperFactory DEFAULT_OBJECT_WRAPPER_FACTORY = new DefaultObjectWrapperFactory();
@@ -153,16 +154,17 @@ public abstract class MapperEnhancer {
      * @throws IllegalAccessException
      */
     public void setSqlSource(MappedStatement ms, Configuration configuration) throws Exception {
-        Method method = methodMap.get(getMethodName(ms));
+        String key = getMethodName(ms);
+        Method method = methodMap.get(key);
+        MapperRoutingHandler mapperRoutingHandler = mapperHandlerMap.get(key);
         try {
             if (method.getReturnType() == Void.TYPE) {
                 method.invoke(this, ms);
             } else if (SqlSource.class.isAssignableFrom(method.getReturnType())) {
-                //代码增强 扩充为512个方法。
-                for (long i = 0; i < 512; i++) {
-
+                // 按tableSize个数进行增强
+                for (long i = 0; i < mapperRoutingHandler.tableSize(); i++) {
                     //新的带sharding的sql
-                    SqlSource sqlSource = (SqlSource) method.invoke(this, ms, configuration, i);
+                    SqlSource sqlSource = (SqlSource) method.invoke(this, ms, configuration, mapperRoutingHandler, i);
 
                     String newMsId = ms.getId() + ShardingCaculator.getNumberWithZeroSuffix(i);
                     newMsId = newMsId.replace("Mapper.", "MapperSharding" + getMethodName(ms) + ".");

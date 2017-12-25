@@ -1,5 +1,7 @@
 package com.mogujie.trade.tsharding.route.orm;
 
+import com.mogujie.trade.db.DataSourceRouting;
+import com.mogujie.trade.db.MapperRoutingHandler;
 import com.mogujie.trade.tsharding.annotation.ShardingExtensionMethod;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.session.Configuration;
@@ -59,6 +61,15 @@ public class MapperHelperForSharding {
      */
     private List<SqlSession> sqlSessions = new ArrayList<SqlSession>();
 
+//    /**
+//     * 用于保存MapperShardingInitializer中的needEnhancedClasses值,将其增加mapper方法移到此处,目的是为了知道需要增加多少个mapper
+//     */
+//    private String needEnhancedClasses;
+//
+//    public MapperHelperForSharding(String needEnhancedClasses) {
+//        this.needEnhancedClasses = needEnhancedClasses;
+//    }
+
     /**
      * 针对Spring注入需要处理的SqlSession
      *
@@ -112,20 +123,37 @@ public class MapperHelperForSharding {
     }
 
     /**
+     * 保存已增强处理过的Mapper
+     */
+    private HashMap<String, MapperRoutingHandler> mapperHasEnhance = new HashMap<>();
+
+    /**
      * 通过通用Mapper接口获取对应的MapperTemplate
      *
      * @param mapperClass
      */
     private MapperEnhancer fromMapperClass(Class<?> mapperClass) {
+        if (!mapperHasEnhance.containsKey(mapperClass.getName())) {
+            // 说明还没处理
+            DataSourceRouting dataSourceRouting = mapperClass.getAnnotation(DataSourceRouting.class);
+            try {
+                MapperRoutingHandler shardingMapper = dataSourceRouting.handler().newInstance();
+                MapperEnhancer.enhanceMapperClass(mapperClass.getName(), shardingMapper);
+                mapperHasEnhance.put(mapperClass.getName(), shardingMapper);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         Method[] methods = mapperClass.getDeclaredMethods();
         Class<?> templateClass = null;
         Class<?> tempClass = null;
-        Set<String> methodSet = new HashSet<String>();
+        Map<String, MapperRoutingHandler> mapperHandlerMap = new HashMap<>();
         for (Method method : methods) {
             if (method.isAnnotationPresent(ShardingExtensionMethod.class)) {
                 ShardingExtensionMethod annotation = method.getAnnotation(ShardingExtensionMethod.class);
                 tempClass = annotation.type();
-                methodSet.add(method.getName());
+                mapperHandlerMap.put(method.getName(), mapperHasEnhance.get(mapperClass.getName()));
             }
             if (templateClass == null) {
                 templateClass = tempClass;
@@ -136,16 +164,16 @@ public class MapperHelperForSharding {
         if (templateClass == null || !MapperEnhancer.class.isAssignableFrom(templateClass)) {
             throw new RuntimeException("接口中不存在包含type为MapperTemplate的Provider注解，这不是一个合法的通用Mapper接口类!");
         }
-        MapperEnhancer mapperEnhancer = null;
+        MapperEnhancer mapperEnhancer;
         try {
             mapperEnhancer = (MapperEnhancer) templateClass.getConstructor(Class.class).newInstance(mapperClass);
         } catch (Exception e) {
             throw new RuntimeException("实例化MapperTemplate对象失败:" + e.getMessage(), e);
         }
         // 注册方法
-        for (String methodName : methodSet) {
+        for (Map.Entry<String, MapperRoutingHandler> item : mapperHandlerMap.entrySet()) {
             try {
-                mapperEnhancer.addMethodMap(methodName, templateClass.getMethod("enhancedShardingSQL", MappedStatement.class, Configuration.class, Long.class));
+                mapperEnhancer.addMethodMap(item.getKey(), item.getValue(), templateClass.getMethod("enhancedShardingSQL", MappedStatement.class, Configuration.class, MapperRoutingHandler.class, Long.class));
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException(templateClass.getCanonicalName() + "中缺少enhancedShardingSQL方法!");
             }
